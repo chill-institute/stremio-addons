@@ -62,7 +62,7 @@ function Server(methods, options, manifest)
 	};
 
 	// Direct interface
-	this.request = function(method, params, cb) {
+	this.request = function(req, method, params, cb) {
 		if (method == "meta") return meta(cb);
 		if (! methods[method]) return cb({ message: "method not supported", code: -32601 }, null);
 
@@ -73,7 +73,7 @@ function Server(methods, options, manifest)
 			if (err) return cb(err);
 			if (IS_DEVEL) validate(method, res); // This would simply console-log warnings in case of wrong args; aimed to aid development
 			cb(null, res);
-		}, { stremioget: true }); // everything is allowed without auth in stremioget mode
+		}, { stremioget: true, req }); // everything is allowed without auth in stremioget mode
 	};
 
 	// HTTP middleware
@@ -109,7 +109,7 @@ function Server(methods, options, manifest)
 		
 		if (req.method == "POST" || ( req.method == "GET" && parsed.pathname.match("q.json$") ) ) return serveRPC(req, res, function(method, params, cb) {
 			req._statsNotes.push(method); // stremio method
-			self.request(method, params, cb);
+			self.request(req, method, params, cb);
 		}); else if (req.method == "GET") { // unsupported by JSON-RPC, it uses post
 			return landingPage(req, res);
 		}
